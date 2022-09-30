@@ -1,8 +1,23 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+import { useSession, signOut } from 'next-auth/react'
+import useGoogleIdentify from '../hooks/useGoogleIdentify'
 
 export default function Home() {
+  const {data: session} = useSession()
+  const nextAuthOpt = {
+    redirect: false
+  }
+  const googleOpt = {
+    prompt_parent_id: 'oneTap',
+    isOneTap: true
+  }
+
+  const {isSignedIn} = useGoogleIdentify({
+    nextAuthOpt, googleOpt
+  })
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,10 +26,33 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      {!isSignedIn ? (
+        <div id='oneTap' style={{ position: 'fixed', right: '0'}}/>
+      ) : null}
+
+      <div id='oneTap' style={{ position: 'fixed', right: '0'}}/>
+
       <main className={styles.main}>
         <h1 className={styles.title}>
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
+
+        { session ? (
+          <div className='my-account'>
+            <h2>Hello {session?.user?.name}</h2>
+            <Image
+              src={session?.user?.image}
+              height={80}
+              width={80}
+              alt={session?.user?.name}
+            />
+            <button style={{marginTop: '60px', display: 'block'}} onClick={() => signOut()}>Logout</button>
+          </div>
+        ) : (
+          <a href='/login'>
+            <button style={{marginTop: '60px'}}>Login</button>
+          </a>
+        )}
 
         <p className={styles.description}>
           Get started by editing{' '}
